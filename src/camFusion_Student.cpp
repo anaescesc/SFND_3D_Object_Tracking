@@ -249,12 +249,6 @@ void computeTTCLidar(std::vector<LidarPoint> &lidarPointsPrev,
         minXPrev = lidarPointsPrev[lidarPointsPrev.size()/2].x;
 
     TTC = (minXCurr * dT)/(minXPrev - minXCurr);
-    std::cout<<"CORRECT TTC Lidar "<<TTC<<std::endl;
-    std::cout<<"CORERECT Curreny min "<<minXCurr<<" prev min "<<minXPrev<<" rate "<<dT<<std::endl;
-    minXCurr = lidarPointsCurr[0].x;
-    minXPrev = lidarPointsPrev[0].x;
-    TTC = (minXCurr * dT)/(minXPrev - minXCurr);
-    std::cout<<"Curreny min "<<minXCurr<<" prev min "<<minXPrev<<std::endl;
     std::cout<<"TTC Lidar "<<TTC<<std::endl;
 }
 

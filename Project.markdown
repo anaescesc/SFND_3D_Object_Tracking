@@ -34,3 +34,24 @@ Format: ![Alt Text](url)
 
 ![Example 3](/Examples/Example3.png)
 Format: ![Alt Text](url)
+
+### FP.6  Performance Evaluation 2
+To do this task, the median developed in section 2 has been reimplemented to calculate the TTC Lidar. In the *Graph.xlxs* file all the experiments done can be found. From this analysis the next conclussions have been obteined:
+1. Respect of lidar :
+     1.  Detectors and descriptors not afects to Lidar estimation. This estimation is calculated from de ROI obteined by yolo detection.
+   1. Lidar estimation is used as a reference. It is stable and it responds correctly to what happen on the scene. In the last part of dataset, where the vehicle is braking (brake lights activated), the TTC decreased considerably. Visually we can also see in the images how the front vehicle is closer.
+2. Respect of detector and descriptors :
+   1. The TTC estimation of the camera is very sensitive to the change of detector and descriptor.
+   2. The results obtained with the NN method are much worse than with the KNN. With the NN method, the results obtained are not valid.
+   3. Using the FAST detector, the time estimates obtained are negative, in most of the route.
+   4. With the BRISK detector (KNN) it can be seen how the results in the first and last part of the dataset are stable. It becomes unstable when the vehicle goes from accelerating to decelerating.
+   5. Behaviors obtained with ORB are not valid.
+   6. With the AKAZE detector the estimates obtained in the first part of the dataset are stable. But by changing the sign of acceleration they become unstable.
+   7. The best results of modern detectors are obtained with SIFT as detector and BRISK and FREAK as descriptors. Although the estimates are not as good as with lidar.
+   8.  Regarding the HARRIS and SHITOMASI detectors, curiously these are the ones that present the best results.
+3. Final conclusions:
+   1. Lidar TTC estimates are more accurate and reliable than those obtained by the camera.
+   2. Camera estimates are very sensitive to changes in descriptor and detectors.
+   3. It is necessary to filter the matches with which the TTC of the camera is estimated.
+   4. It is necessary to implement an acceleration model. The velocity model is not sufficient for the estimation.
+

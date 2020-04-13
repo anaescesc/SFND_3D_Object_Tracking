@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
     string imgPrefix = "KITTI/2011_09_26/image_02/data/000000"; // left camera, color
     string imgFileType = ".png";
     int imgStartIndex = 0; // first file index to load (assumes Lidar and camera names have identical naming convention)
-    int imgEndIndex = 70;   // last file index to load
+    int imgEndIndex = 30;   // last file index to load
     int imgStepWidth = 1; 
     int imgFillWidth = 4;  // no. of digits which make up the file index (e.g. img-0001.png)
 
@@ -73,7 +73,7 @@ int main(int argc, const char *argv[])
     int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
     vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
     bool bVis = false;            // visualize results
-
+    std::vector<std::pair<float,float>> ttc;
     /* MAIN LOOP OVER ALL IMAGES */
 
     for (size_t imgIndex = 0; imgIndex <= imgEndIndex - imgStartIndex; imgIndex+=imgStepWidth)
@@ -132,7 +132,7 @@ int main(int argc, const char *argv[])
         bVis = true;
         if(bVis)
         {
-            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(700, 700), true);
+            show3DObjects((dataBuffer.end()-1)->boundingBoxes, cv::Size(4.0, 20.0), cv::Size(700, 700), false);
         }
         bVis = false;
 
@@ -152,13 +152,20 @@ int main(int argc, const char *argv[])
         vector<cv::KeyPoint> keypoints; // create empty feature list for current image
         string detectorType = "SHITOMASI";
 
+        float time =0;
         if (detectorType.compare("SHITOMASI") == 0)
         {
             detKeypointsShiTomasi(keypoints, imgGray, false);
         }
-        else
+        else if (detectorType.compare("HARRIS") == 0)
         {
-            //...
+            detKeypointsHarris(keypoints, imgGray, time, false);
+        }
+        else if (detectorType.compare("FAST") == 0 || detectorType.compare("BRISK") == 0 ||
+                 detectorType.compare("ORB") == 0 || detectorType.compare("AKAZE") == 0 ||
+                 detectorType.compare("SIFT") == 0)
+        {
+            detKeypointsModern(keypoints, imgGray, detectorType, time, false);
         }
 
         // optional : limit number of keypoints (helpful for debugging and learning)
@@ -201,7 +208,7 @@ int main(int argc, const char *argv[])
             vector<cv::DMatch> matches;
             string matcherType = "MAT_BF";        // MAT_BF, MAT_FLANN
             string descriptorType = "DES_BINARY"; // DES_BINARY, DES_HOG
-            string selectorType = "SEL_NN";       // SEL_NN, SEL_KNN
+            string selectorType = "SEL_KNN";       // SEL_NN, SEL_KNN
 
             matchDescriptors((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints,
                              (dataBuffer.end() - 2)->descriptors, (dataBuffer.end() - 1)->descriptors,
@@ -265,6 +272,7 @@ int main(int argc, const char *argv[])
                     double ttcCamera;
                     clusterKptMatchesWithROI(*currBB, (dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, (dataBuffer.end() - 1)->kptMatches);                    
                     computeTTCCamera((dataBuffer.end() - 2)->keypoints, (dataBuffer.end() - 1)->keypoints, currBB->kptMatches, sensorFrameRate, ttcCamera);
+                    ttc.push_back(std::pair<float,float>(ttcLidar,ttcCamera));
                     //// EOF STUDENT ASSIGNMENT
 
                     bVis = true;
@@ -292,6 +300,15 @@ int main(int argc, const char *argv[])
         }
 
     } // eof loop over all images
+
+    //Print ttc
+    std::cout<<"TTC Lidar"<<std::endl;
+    for(auto it = ttc.begin(); it != ttc.end(); it++)
+        std::cout<<(*it).first<<std::endl;
+
+    std::cout<<"TTC Camera"<<std::endl;
+    for(auto it = ttc.begin(); it != ttc.end(); it++)
+        std::cout<<(*it).second<<std::endl;
 
     return 0;
 }
